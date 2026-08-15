@@ -2,12 +2,11 @@ import os
 from datetime import datetime, timedelta, timezone
 import bcrypt
 import jwt
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 
 
 # JWT Configurations
-load_dotenv()
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv("SECRET_KEY", "change-me-to-a-secure-random-value")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
