@@ -5,6 +5,7 @@ from sqlalchemy import (
     DateTime,
     func,
     ForeignKey,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -13,7 +14,8 @@ from app.database import Base
 class Task(Base):
     __tablename__ = "tasks"
 
-    id = Column(Integer, primary_key=True, index=True)
+    internal_id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, nullable=False)
     title = Column(String, index=True, nullable=False)
     description = Column(String, nullable=True)
     status = Column(String, nullable=False, default="pending")
@@ -22,3 +24,7 @@ class Task(Base):
     due_date = Column(DateTime, nullable=True)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     owner = relationship("User", back_populates="tasks")
+
+    __table_args__ = (
+        UniqueConstraint("owner_id", "id", name="uq_owner_task_id"),
+    )
