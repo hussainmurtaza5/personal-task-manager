@@ -12,26 +12,54 @@ from app.schemas.task import TaskCreate, TaskResponse
 router = APIRouter()
 
 
-@router.post("/workspace/{workspace_id}/create", response_model=TaskResponse)
+def get_workspace(
+    workspace_id: int,
+    current_user: User,
+    db: Session,
+):
+    workspace = (
+        db.query(Workspace)
+        .filter(Workspace.id == workspace_id)
+        .first()
+    )
+
+    if not workspace:
+        raise HTTPException(
+            status_code=404,
+            detail="Workspace not found",
+        )
+
+    if current_user not in workspace.members:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized to access this workspace",
+        )
+
+    return workspace
+
+
+@router.post(
+    "/workspace/{workspace_id}/create",
+    response_model=TaskResponse,
+)
 def create_task(
     workspace_id: int,
     request: TaskCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    # Verify workspace exists and user is a member
-    workspace = db.query(Workspace).filter(Workspace.id == workspace_id).first()
-    if not workspace:
-        raise HTTPException(status_code=404, detail="Workspace not found")
-    if current_user not in workspace.members:
-        raise HTTPException(status_code=403, detail="Not authorized to access this workspace")
+    workspace = get_workspace(
+        workspace_id,
+        current_user,
+        db,
+    )
 
-    # Calculate new task ID per workspace
     max_id = (
         db.query(func.max(Task.id))
         .filter(Task.workspace_id == workspace_id)
         .scalar()
     )
+
     new_id = (max_id or 0) + 1
 
     new_task = Task(
@@ -42,51 +70,72 @@ def create_task(
         priority=request.priority,
         due_date=request.due_date,
         owner_id=current_user.id,
-        workspace_id=workspace_id,
+        workspace_id=workspace.id,
     )
+
     db.add(new_task)
     db.commit()
     db.refresh(new_task)
+
     return new_task
 
 
-@router.get("/workspace/{workspace_id}", response_model=list[TaskResponse])
+@router.get(
+    "/workspace/{workspace_id}",
+    response_model=list[TaskResponse],
+)
 def list_tasks(
     workspace_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    # Verify workspace membership
-    workspace = db.query(Workspace).filter(Workspace.id == workspace_id).first()
-    if not workspace:
-        raise HTTPException(status_code=404, detail="Workspace not found")
-    if current_user not in workspace.members:
-        raise HTTPException(status_code=403, detail="Not authorized to access this workspace")
+    workspace = get_workspace(
+        workspace_id,
+        current_user,
+        db,
+    )
 
     return workspace.tasks
 
 
-@router.get("/workspace/{workspace_id}/{task_id}", response_model=TaskResponse)
+@router.get(
+    "/workspace/{workspace_id}/{task_id}",
+    response_model=TaskResponse,
+)
 def get_task(
     workspace_id: int,
     task_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    # Verify workspace membership
-    workspace = db.query(Workspace).filter(Workspace.id == workspace_id).first()
-    if not workspace:
-        raise HTTPException(status_code=404, detail="Workspace not found")
-    if current_user not in workspace.members:
-        raise HTTPException(status_code=403, detail="Not authorized to access this workspace")
+    get_workspace(
+        workspace_id,
+        current_user,
+        db,
+    )
 
-    task = db.query(Task).filter(Task.id == task_id, Task.workspace_id == workspace_id).first()
+    task = (
+        db.query(Task)
+        .filter(
+            Task.id == task_id,
+            Task.workspace_id == workspace_id,
+        )
+        .first()
+    )
+
     if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Task not found",
+        )
+
     return task
 
 
-@router.put("/workspace/{workspace_id}/{task_id}/update", response_model=TaskResponse)
+@router.put(
+    "/workspace/{workspace_id}/{task_id}/update",
+    response_model=TaskResponse,
+)
 def update_task(
     workspace_id: int,
     task_id: int,
@@ -94,45 +143,77 @@ def update_task(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    # Verify workspace membership
-    workspace = db.query(Workspace).filter(Workspace.id == workspace_id).first()
-    if not workspace:
-        raise HTTPException(status_code=404, detail="Workspace not found")
-    if current_user not in workspace.members:
-        raise HTTPException(status_code=403, detail="Not authorized to access this workspace")
+    get_workspace(
+        workspace_id,
+        current_user,
+        db,
+    )
 
-    task = db.query(Task).filter(Task.id == task_id, Task.workspace_id == workspace_id).first()
+    task = (
+        db.query(Task)
+        .filter(
+            Task.id == task_id,
+            Task.workspace_id == workspace_id,
+        )
+        .first()
+    )
+
     if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Task not found",
+        )
 
-    task.title = request.title
-    task.description = request.description
-    task.status = request.status
-    task.priority = request.priority
-    task.due_date = request.due_date
+    db.query(Task).filter(
+    Task.id == task_id,
+    Task.workspace_id == workspace_id,
+        ).update(
+    {
+        "title": request.title,
+        "description": request.description,
+        "status": request.status,
+        "priority": request.priority,
+        "due_date": request.due_date,
+    }
+)
     db.commit()
     db.refresh(task)
+
     return task
 
 
-@router.delete("/workspace/{workspace_id}/{task_id}/delete", response_model=TaskResponse)
+@router.delete(
+    "/workspace/{workspace_id}/{task_id}/delete",
+    response_model=TaskResponse,
+)
 def delete_task(
     workspace_id: int,
     task_id: int,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    # Verify workspace membership
-    workspace = db.query(Workspace).filter(Workspace.id == workspace_id).first()
-    if not workspace:
-        raise HTTPException(status_code=404, detail="Workspace not found")
-    if current_user not in workspace.members:
-        raise HTTPException(status_code=403, detail="Not authorized to access this workspace")
+    get_workspace(
+        workspace_id,
+        current_user,
+        db,
+    )
 
-    task = db.query(Task).filter(Task.id == task_id, Task.workspace_id == workspace_id).first()
+    task = (
+        db.query(Task)
+        .filter(
+            Task.id == task_id,
+            Task.workspace_id == workspace_id,
+        )
+        .first()
+    )
+
     if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Task not found",
+        )
 
     db.delete(task)
     db.commit()
+
     return task

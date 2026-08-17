@@ -17,6 +17,6 @@ class TaskResponse(BaseModel):
     status: str
     created_at: datetime
     owner_id: int
-    workspace_id: int
+    workspace_id: int | None = None
     class Config:
         from_attributes = True
