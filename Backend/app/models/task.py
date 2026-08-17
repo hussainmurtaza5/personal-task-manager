@@ -24,7 +24,10 @@ class Task(Base):
     due_date = Column(DateTime, nullable=True)
     owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     owner = relationship("User", back_populates="tasks")
+    
+    workspace_id = Column(Integer, ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=False)
+    workspace = relationship("Workspace", back_populates="tasks")
 
     __table_args__ = (
-        UniqueConstraint("owner_id", "id", name="uq_owner_task_id"),
+        UniqueConstraint("workspace_id", "id", name="uq_workspace_task_id"),
     )

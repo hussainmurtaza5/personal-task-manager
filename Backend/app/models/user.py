@@ -19,3 +19,9 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     tasks = relationship("Task", back_populates="owner")
+    workspaces = relationship("Workspace", secondary="user_workspace", back_populates="members")
+    owned_workspaces = relationship(
+    "Workspace",
+    foreign_keys="Workspace.owner_id",
+    back_populates="owner",
+)

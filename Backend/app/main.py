@@ -2,8 +2,10 @@ from fastapi import FastAPI
 from app.database import Base, engine
 import app.models.user
 import app.models.task
+import app.models.workspace
 from app.routers.auth import router as auth_router
 from app.routers.tasks import router as task_router
+from app.routers.workspaces import router as workspace_router
 
 app = FastAPI(title="Personal Task Manager API")
 
@@ -13,6 +15,7 @@ Base.metadata.create_all(bind=engine)
 # Include routers
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(task_router, prefix="/tasks", tags=["tasks"])
+app.include_router(workspace_router, prefix="/workspaces", tags=["workspaces"])
 
 
 @app.get("/")
