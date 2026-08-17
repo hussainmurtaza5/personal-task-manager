@@ -23,13 +23,15 @@ def create_workspace(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    current_user_db = db.merge(current_user)
+
     new_workspace = Workspace(
         name=request.name,
         description=request.description,
-        owner_id=current_user.id,
+        owner_id=current_user_db.id,
     )
 
-    new_workspace.members.append(current_user)
+    new_workspace.members.append(current_user_db)
 
     db.add(new_workspace)
     db.commit()
@@ -95,7 +97,7 @@ def add_member(
             detail="User not found",
         )
 
-    if user_to_add in workspace.members:
+    if any(member.id == user_to_add.id for member in workspace.members):
         raise HTTPException(
             status_code=400,
             detail="User is already a member of this workspace",

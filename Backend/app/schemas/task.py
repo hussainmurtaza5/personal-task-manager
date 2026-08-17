@@ -7,7 +7,9 @@ class TaskCreate(BaseModel):
     status: str = "pending"
     priority: int = 0
     due_date: datetime | None = None
-    
+    workspace_id: int | None = None
+
+
 class TaskResponse(BaseModel):
     id: int
     title: str
@@ -18,5 +20,6 @@ class TaskResponse(BaseModel):
     created_at: datetime
     owner_id: int
     workspace_id: int | None = None
+
     class Config:
         from_attributes = True

@@ -29,7 +29,7 @@ class Task(Base):
     workspace_id = Column(
         Integer,
         ForeignKey("workspaces.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
     )
     workspace = relationship("Workspace", back_populates="tasks")
 
