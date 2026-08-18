@@ -145,11 +145,11 @@ def update_personal_task(
             detail="Personal task not found",
         )
 
-    task.title = request.title
-    task.description = request.description
-    task.status = request.status
-    task.priority = request.priority
-    task.due_date = request.due_date
+    task.title = request.title # type: ignore
+    task.description = request.description # type: ignore
+    task.status = request.status # type: ignore
+    task.priority = request.priority # type: ignore
+    task.due_date = request.due_date # type: ignore
 
     db.commit()
     db.refresh(task)
