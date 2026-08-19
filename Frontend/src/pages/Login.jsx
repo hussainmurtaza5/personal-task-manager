@@ -32,9 +32,28 @@ function Login() {
         }
     };
 
-    const handleRegister = (e) => {
+    const handleRegister = async (e) => {
         e.preventDefault();
-        // Handle register logic here
+        setError('');
+
+        if (registerPassword !== confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            await authService.register(username, email, registerPassword);
+            const response = await authService.login(username, registerPassword);
+            console.log('Registration successful:', response);
+            window.location.href = '/dashboard';
+        } catch (err) {
+            setError(err.message);
+            console.error('Registration error:', err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const toggleMode = () => {
