@@ -50,11 +50,7 @@ def create_personal_task(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    max_id = (
-        db.query(func.max(Task.id))
-        .filter(Task.owner_id == current_user.id)
-        .scalar()
-    )
+    max_id = db.query(func.max(Task.id)).scalar()
 
     new_id = (max_id or 0) + 1
 

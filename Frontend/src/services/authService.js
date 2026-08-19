@@ -65,6 +65,18 @@ export function getToken() {
     return localStorage.getItem("access_token");
 }
 
+export function getUsername() {
+    const token = getToken();
+    if (!token) return "User";
+
+    try {
+        const payload = JSON.parse(window.atob(token.split(".")[1]));
+        return payload.sub || "User";
+    } catch {
+        return "User";
+    }
+}
+
 export function logout() {
     localStorage.removeItem("access_token");
     localStorage.removeItem("token_type");

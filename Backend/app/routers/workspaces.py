@@ -45,7 +45,12 @@ def get_workspaces(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return current_user.workspaces
+    return (
+        db.query(Workspace)
+        .join(Workspace.members)
+        .filter(User.id == current_user.id)
+        .all()
+    )
 
 
 @router.post(
