@@ -8,16 +8,29 @@ from app.routers.auth import router as auth_router
 from app.routers.tasks import router as task_router
 from app.routers.workspaces import router as workspace_router
 
+import os
+
 app = FastAPI(title="Personal Task Manager API")
 
 # Add CORS middleware
+allowed_origins_env = os.getenv("CORS_ORIGINS")
+if allowed_origins_env:
+    origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
+else:
+    origins = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://team-task-manag.netlify.app",
+    ]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
