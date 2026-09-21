@@ -1,12 +1,14 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 // import authService, { loginUser } from '../services/authService';
 import * as authService from '../services/authService';
 import '../styles/Login.css';
 
 function Login() {
+    const location = useLocation();
     const [usernameOrEmail, setUsernameOrEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [isLogin, setIsLogin] = useState(true);
+    const [isLogin, setIsLogin] = useState(location.pathname !== '/register');
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [registerPassword, setRegisterPassword] = useState('');

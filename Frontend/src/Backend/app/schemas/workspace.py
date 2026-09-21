@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from app.schemas.user import UserResponse
 
 class WorkspaceCreate(BaseModel):
@@ -8,15 +8,14 @@ class WorkspaceCreate(BaseModel):
 
 
 class WorkspaceResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     name: str
     description: str | None = None
     created_at: datetime
     owner_id: int
     members: list[UserResponse] = Field(default_factory=list)
-
-    class Config:
-        from_attributes = True
 
 
 class AddMemberRequest(BaseModel):
