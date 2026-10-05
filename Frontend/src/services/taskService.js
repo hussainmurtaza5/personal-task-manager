@@ -31,6 +31,13 @@ export function getPersonalTasks() {
     return request('/tasks/personal');
 }
 
+export function updatePersonalTask(taskId, task) {
+    return request(`/tasks/${taskId}/update`, {
+        method: 'PUT',
+        body: JSON.stringify(task),
+    });
+}
+
 export function createPersonalTask({ title, description = null, status = 'pending', priority = 0, dueDate = null }) {
     return request('/tasks/create', {
         method: 'POST',
@@ -46,6 +53,13 @@ export function createPersonalTask({ title, description = null, status = 'pendin
 
 export function getWorkspaceTasks(workspaceId) {
     return request(`/tasks/workspace/${workspaceId}`);
+}
+
+export function updateWorkspaceTask(workspaceId, taskId, task) {
+    return request(`/tasks/workspace/${workspaceId}/${taskId}/update`, {
+        method: 'PUT',
+        body: JSON.stringify(task),
+    });
 }
 
 export function createWorkspaceTask(workspaceId, { title, description = null, status = 'pending', priority = 0, dueDate = null }) {

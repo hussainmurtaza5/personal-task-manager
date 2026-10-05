@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import DashboardShowcase from './dashboardshowcase.jsx';
-
+import DesignedForFlow from './designedforflow.jsx';
 export default function Homepage() {
   const navLinks = ["Features", "Workspaces", "Team Chat", "Solutions", "Pricing"];
 
@@ -168,6 +168,7 @@ export default function Homepage() {
       </section>
 
       <DashboardShowcase />
+      <DesignedForFlow />
     </div>
   );
 }

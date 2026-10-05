@@ -5,6 +5,8 @@ import {
     getPersonalTasks,
     getWorkspaceTasks,
     createWorkspaceTask,
+    updatePersonalTask,
+    updateWorkspaceTask,
 } from '../services/taskService';
 import {
     createWorkspace as createWorkspaceRequest,
@@ -28,7 +30,10 @@ function toUiTask(task) {
         project: 'Personal',
         workspaceId: task.workspace_id ?? null,
         due,
+        dueDate: task.due_date,
         priority,
+        priorityValue: task.priority,
+        status: task.status,
         done: task.status === 'completed',
     };
 }
@@ -126,12 +131,29 @@ function Dashboard() {
     const completedCount = workspaceTasks.filter((task) => task.done).length;
     const progress = workspaceTasks.length ? Math.round((completedCount / workspaceTasks.length) * 100) : 0;
 
-    const toggleTask = (id) => {
-        setTasks((current) =>
-            current.map((task) =>
-                task.id === id ? { ...task, done: !task.done } : task
-            )
-        );
+    const toggleTask = async (task) => {
+        const status = task.done ? 'pending' : 'completed';
+        const taskData = {
+            title: task.title,
+            description: task.description || null,
+            status,
+            priority: task.priorityValue,
+            due_date: task.dueDate || null,
+        };
+
+        setTaskError('');
+        try {
+            const savedTask = task.workspaceId === null
+                ? await updatePersonalTask(task.id, taskData)
+                : await updateWorkspaceTask(task.workspaceId, task.id, taskData);
+            setTasks((current) => current.map((currentTask) =>
+                currentTask.id === task.id && currentTask.workspaceId === task.workspaceId
+                    ? toUiTask(savedTask)
+                    : currentTask
+            ));
+        } catch (error) {
+            setTaskError(error.message);
+        }
     };
 
     const addTask = async (event) => {
@@ -241,7 +263,7 @@ function Dashboard() {
                         </div>
                     </form>
                     {taskError && <p className="task-error" role="alert">{taskError}</p>}
-                    <div className="task-list">{visibleTasks.map((task) => <article className={`task-row ${task.done ? 'is-done' : ''}`} key={`${task.workspaceId ?? 'personal'}-${task.id}`}><button className="task-check" onClick={() => toggleTask(task.id)} aria-label={`Mark ${task.title} ${task.done ? 'incomplete' : 'complete'}`}>{task.done ? '✓' : ''}</button><div className="task-title"><strong>{task.title}</strong><small><i className={`dot ${task.project === 'Personal' ? 'green' : task.project === 'Freelance' ? 'blue' : 'coral'}`} />{task.project}</small></div><span className="task-due">{task.due}</span><span className={`priority ${task.priority.toLowerCase()}`}>{task.priority}</span><button className="row-more" aria-label={`More options for ${task.title}`}>•••</button></article>)}{visibleTasks.length === 0 && <div className="empty-state">No tasks match this view.</div>}</div></section>
+                    <div className="task-list">{visibleTasks.map((task) => <article className={`task-row ${task.done ? 'is-done' : ''}`} key={`${task.workspaceId ?? 'personal'}-${task.id}`}><button className="task-check" onClick={() => toggleTask(task)} aria-label={`Mark ${task.title} ${task.done ? 'incomplete' : 'complete'}`}>{task.done ? '✓' : ''}</button><div className="task-title"><strong>{task.title}</strong><small><i className={`dot ${task.project === 'Personal' ? 'green' : task.project === 'Freelance' ? 'blue' : 'coral'}`} />{task.project}</small></div><span className="task-due">{task.due}</span><span className={`priority ${task.priority.toLowerCase()}`}>{task.priority}</span><button className="row-more" aria-label={`More options for ${task.title}`}>•••</button></article>)}{visibleTasks.length === 0 && <div className="empty-state">No tasks match this view.</div>}</div></section>
                 </div>
             </main>
             {workspaceDialog && <div className="dialog-backdrop" role="presentation" onMouseDown={() => setWorkspaceDialog(null)}><section className="workspace-dialog" role="dialog" aria-modal="true" aria-labelledby="workspace-dialog-title" onMouseDown={(event) => event.stopPropagation()}><button className="dialog-close" onClick={() => setWorkspaceDialog(null)} aria-label="Close">×</button>{workspaceDialog === 'create' ? <><p className="eyebrow">Workspace</p><h2 id="workspace-dialog-title">Create a workspace</h2><p className="dialog-copy">Create a shared space for tasks and members.</p><form onSubmit={createWorkspace}><label>Workspace name<input value={workspaceName} onChange={(event) => setWorkspaceName(event.target.value)} placeholder="e.g. Marketing team" required /></label><label>Description <span>(optional)</span><textarea value={workspaceDescription} onChange={(event) => setWorkspaceDescription(event.target.value)} placeholder="What is this workspace for?" rows="3" /></label>{workspaceError && <p className="task-error" role="alert">{workspaceError}</p>}<button className="dialog-submit" type="submit">Create workspace</button></form></> : <><p className="eyebrow">{selectedWorkspace.name}</p><h2 id="workspace-dialog-title">Invite a member</h2><p className="dialog-copy">Add a member by username or email. Only workspace owners can do this.</p><form onSubmit={inviteMember}><label>Username or email<input value={memberUsernameOrEmail} onChange={(event) => setMemberUsernameOrEmail(event.target.value)} placeholder="name@example.com" required disabled={isInviting} /></label>{inviteError && <p className="task-error" role="alert">{inviteError}</p>}{inviteSuccess && <p className="invite-success" role="status">{inviteSuccess}</p>}<button className="dialog-submit" type="submit" disabled={isInviting}>{isInviting ? 'Inviting...' : 'Invite member'}</button></form></>}</section></div>}

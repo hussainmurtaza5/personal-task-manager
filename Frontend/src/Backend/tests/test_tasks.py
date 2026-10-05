@@ -80,6 +80,42 @@ def test_create_multiple_personal_tasks():
     app.dependency_overrides.clear()
 
 
+def test_completed_personal_task_status_persists():
+    user = reset_db()
+    app.dependency_overrides[get_current_user] = lambda: user
+
+    def override_get_db():
+        db = TestingSessionLocal()
+        try:
+            yield db
+        finally:
+            db.close()
+
+    app.dependency_overrides[get_db] = override_get_db
+
+    client = TestClient(app)
+    created = client.post("/tasks/create", json={"title": "Finish report"})
+    task_id = created.json()["id"]
+    updated = client.put(
+        f"/tasks/{task_id}/update",
+        json={
+            "title": "Finish report",
+            "description": None,
+            "status": "completed",
+            "priority": 0,
+            "due_date": None,
+        },
+    )
+    listed = client.get("/tasks/personal")
+
+    assert created.status_code == 200, created.text
+    assert updated.status_code == 200, updated.text
+    assert listed.status_code == 200, listed.text
+    assert listed.json()[0]["status"] == "completed"
+
+    app.dependency_overrides.clear()
+
+
 def test_create_workspace_and_list_membership():
     user = reset_db()
     app.dependency_overrides[get_current_user] = lambda: user

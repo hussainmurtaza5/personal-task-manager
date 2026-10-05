@@ -8,3 +8,9 @@ services:
     envVars:
       - key: CORS_ORIGINS
         value: https://team-task-manag.netlify.app
+      - key: DATABASE_URL
+        value: sqlite:////var/data/app.db
+    disk:
+      name: personal-task-manager-data
+      mountPath: /var/data
+      sizeGB: 1
