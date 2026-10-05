@@ -5,42 +5,49 @@ export default function DashboardShowcase() {
   const containerRef = useRef(null);
   const cardsRef = useRef([]);
   const progressRef = useRef(null);
-  const greetingRef = useRef(null);
 
   useEffect(() => {
+    let observer;
     const ctx = gsap.context(() => {
-      // Greeting fade + slight upward slide
-      gsap.from(greetingRef.current, {
-        opacity: 0,
-        y: 20,
-        duration: 0.7,
-        ease: "power3.out",
-      });
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        gsap.set(progressRef.current, { width: "100%" });
+        return;
+      }
 
-      // Stagger the metric cards
-      gsap.from(cardsRef.current, {
-        opacity: 0,
-        y: 30,
-        duration: 0.6,
-        stagger: 0.12,
-        ease: "power3.out",
-        delay: 0.15,
-      });
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry.isIntersecting) return;
 
-      // Animate the progress bar fill
-      gsap.fromTo(
-        progressRef.current,
-        { width: "0%" },
-        {
-          width: "100%",
-          duration: 1.2,
-          ease: "power2.out",
-          delay: 0.6,
-        }
+          gsap
+            .timeline()
+            .fromTo(
+              cardsRef.current.filter(Boolean),
+              { opacity: 0, y: 22 },
+              {
+                opacity: 1,
+                y: 0,
+                duration: 0.5,
+                stagger: 0.1,
+                ease: "power3.out",
+              }
+            )
+            .fromTo(
+              progressRef.current,
+              { width: "0%" },
+              { width: "100%", duration: 1, ease: "power2.out" },
+              "-=0.15"
+            );
+          observer.disconnect();
+        },
+        { threshold: 0.18 }
       );
+      observer.observe(containerRef.current);
     }, containerRef);
 
-    return () => ctx.revert();
+    return () => {
+      observer?.disconnect();
+      ctx.revert();
+    };
   }, []);
 
   const addToCardsRef = (el, index) => {
@@ -48,10 +55,11 @@ export default function DashboardShowcase() {
   };
 
   return (
-    <div
-      ref={containerRef}
-      className="mx-auto w-full max-w-[1180px] overflow-hidden rounded-2xl border border-slate-200/70 bg-[#F8F7FC] font-sans text-slate-800 shadow-[0_35px_80px_-25px_rgba(15,23,42,0.45),0_12px_30px_-12px_rgba(15,23,42,0.2)] ring-1 ring-slate-900/5"
-    >
+    <section className="mx-auto my-12 w-full max-w-5xl px-4 sm:my-16 sm:px-6">
+      <div
+        ref={containerRef}
+        className="mx-auto max-h-[680px] w-full overflow-hidden rounded-2xl border border-slate-200/70 bg-[#F8F7FC] font-sans text-slate-800 shadow-[0_35px_80px_-25px_rgba(15,23,42,0.32),0_12px_30px_-12px_rgba(15,23,42,0.16)] ring-1 ring-slate-900/5"
+      >
       {/* Browser-style window chrome (screenshot frame) */}
       <div className="flex items-center gap-1.5 px-4 py-2 bg-white/60 border-b border-slate-200/60">
         <span className="h-3 w-3 rounded-full bg-rose-400" />
@@ -91,7 +99,7 @@ export default function DashboardShowcase() {
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className="hidden lg:flex w-64 min-h-[760px] shrink-0 bg-white border-r border-slate-200/70 p-4 flex-col">
+        <aside className="hidden lg:flex w-64 min-h-760px shrink-0 bg-white border-r border-slate-200/70 p-4 flex-col">
           <div className="flex items-center gap-3 mb-6 px-2 py-2 rounded-xl bg-slate-50">
             <div className="w-9 h-9 rounded-lg bg-violet-500 flex items-center justify-center text-white font-semibold">
               P
@@ -183,7 +191,7 @@ export default function DashboardShowcase() {
         {/* Main content */}
         <main className="min-w-0 w-full flex-1 p-5 sm:p-8">
           {/* Greeting */}
-          <div ref={greetingRef} className="mb-8">
+          <div className="mb-8">
             <p className="text-xs font-medium text-slate-400 tracking-widest mb-1">
               WEDNESDAY, AUGUST 19, 2026
             </p>
@@ -197,13 +205,13 @@ export default function DashboardShowcase() {
           </div>
 
           {/* Metric cards + Weekly progress */}
-          <div className="grid grid-cols-1 gap-4 mb-10 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
             {/* Due today */}
             <div
               ref={(el) => {
                 addToCardsRef(el, 0);
               }}
-              className="bg-white rounded-2xl p-5 shadow-md shadow-slate-200/70 border border-slate-100 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+              className="bg-white rounded-2xl p-5 shadow-md shadow-slate-200/70 border border-slate-100 hover:shadow-lg transition-shadow duration-300"
             >
               <div className="flex items-center gap-2 text-sm text-slate-500 mb-3">
                 <span className="text-orange-400">⏰</span>
@@ -218,7 +226,7 @@ export default function DashboardShowcase() {
               ref={(el) => {
                 addToCardsRef(el, 1);
               }}
-              className="bg-white rounded-2xl p-5 shadow-md shadow-slate-200/70 border border-slate-100 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+              className="bg-white rounded-2xl p-5 shadow-md shadow-slate-200/70 border border-slate-100 hover:shadow-lg transition-shadow duration-300"
             >
               <div className="flex items-center gap-2 text-sm text-slate-500 mb-3">
                 <span className="text-emerald-500">✓</span>
@@ -233,7 +241,7 @@ export default function DashboardShowcase() {
               ref={(el) => {
                 addToCardsRef(el, 2);
               }}
-              className="bg-white rounded-2xl p-5 shadow-md shadow-slate-200/70 border border-slate-100 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+              className="bg-white rounded-2xl p-5 shadow-md shadow-slate-200/70 border border-slate-100 hover:shadow-lg transition-shadow duration-300"
             >
               <div className="flex items-center gap-2 text-sm text-slate-500 mb-3">
                 <span className="text-blue-500">📁</span>
@@ -248,7 +256,7 @@ export default function DashboardShowcase() {
               ref={(el) => {
                 addToCardsRef(el, 3);
               }}
-              className="bg-emerald-700 rounded-2xl p-5 text-white shadow-md shadow-emerald-900/30 relative overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+              className="bg-emerald-700 rounded-2xl p-5 text-white shadow-md shadow-emerald-900/30 relative overflow-hidden hover:shadow-lg transition-shadow duration-300"
             >
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-medium opacity-90">
@@ -353,6 +361,7 @@ export default function DashboardShowcase() {
           </div>
         </main>
       </div>
-    </div>
+      </div>
+    </section>
   );
 }
