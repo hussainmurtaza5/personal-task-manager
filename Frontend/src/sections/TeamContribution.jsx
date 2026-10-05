@@ -96,7 +96,7 @@ const TeamContribution = () => {
   };
 
   return (
-    <div ref={sectionRef} className="min-h-screen bg-[#F8F9FA] p-8 md:p-12 font-sans text-slate-800 flex items-center justify-center">
+    <div id="team-chat" ref={sectionRef} className="min-h-screen bg-[#F8F9FA] p-8 md:p-12 font-sans text-slate-800 flex items-center justify-center">
       <div className="max-w-1100px w-full flex flex-col gap-12">
         
         {/* ================= TOP SECTION (LIGHT) ================= */}

@@ -36,7 +36,14 @@ export default function Homepage() {
     return () => ctx.revert();
   }, []);
 
-  const navLinks = ["Features", "Workspaces", "Team Chat", "Solutions", "Pricing"];
+  const navLinks = [
+    { label: "Overview", href: "#overview" },
+    { label: "Features", href: "#features" },
+    { label: "Workspaces", href: "#workspaces" },
+    { label: "Team Chat", href: "#team-chat" },
+    { label: "Testimonials", href: "#testimonials" },
+    { label: "Pricing", href: "#pricing" },
+  ];
 
   const logos = [
     { name: "Linear", icon: (
@@ -83,9 +90,9 @@ export default function Homepage() {
 
           {/* Nav links */}
           <ul className="hidden items-center gap-7 text-[15px] font-medium text-slate-600 md:flex">
-            {navLinks.map((link) => (
-              <li key={link}>
-                <a href="#" className="transition hover:text-slate-900">{link}</a>
+            {navLinks.map(({ label, href }) => (
+              <li key={href}>
+                <a href={href} className="transition hover:text-slate-900">{label}</a>
               </li>
             ))}
           </ul>

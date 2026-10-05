@@ -107,6 +107,7 @@ export default function DesignedForFlow() {
   return (
     <section
       ref={sectionRef}
+      id="features"
       className="relative w-full bg-gradient-to-b from-slate-50/70 to-white py-16 sm:py-20"
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -137,6 +138,7 @@ export default function DesignedForFlow() {
         <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
           {/* Card 1 */}
           <div
+            id="workspaces"
             ref={(el) => setCardRef(el, 0)}
             className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6"
           >

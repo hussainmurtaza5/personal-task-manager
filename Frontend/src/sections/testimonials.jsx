@@ -106,7 +106,7 @@ const TestimonialSection = () => {
   ];
 
   return (
-    <div ref={sectionRef} className="min-h-screen bg-[#F8F9FA] py-16 px-6 md:px-12 font-sans flex flex-col items-center">
+    <div id="testimonials" ref={sectionRef} className="min-h-screen bg-[#F8F9FA] py-16 px-6 md:px-12 font-sans flex flex-col items-center">
       <div className="max-w-[1100px] w-full flex flex-col gap-16">
 
         {/* ================= SECTION 1: TESTIMONIALS ================= */}
@@ -126,7 +126,7 @@ const TestimonialSection = () => {
         </div>
 
         {/* ================= SECTION 2: MIDDLE BANNER ================= */}
-        <div className="pricing-banner bg-white rounded-2xl p-8 shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
+        <div id="pricing" className="pricing-banner bg-white rounded-2xl p-8 shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
           
           <div className="flex flex-col gap-3 max-w-2xl">
             <div className="inline-flex self-start bg-[#E6F4EA] text-[#137333] text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">

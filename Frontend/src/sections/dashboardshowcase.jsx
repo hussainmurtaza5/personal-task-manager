@@ -57,7 +57,7 @@ export default function DashboardShowcase() {
   };
 
   return (
-    <section className="mx-auto my-12 w-full max-w-5xl px-4 sm:my-16 sm:px-6">
+    <section id="overview" className="mx-auto my-12 w-full max-w-5xl px-4 sm:my-16 sm:px-6">
       <div
         ref={containerRef}
         className="mx-auto max-h-[680px] w-full overflow-hidden rounded-2xl border border-slate-200/70 bg-[#F8F7FC] font-sans text-slate-800 shadow-[0_35px_80px_-25px_rgba(15,23,42,0.32),0_12px_30px_-12px_rgba(15,23,42,0.16)] ring-1 ring-slate-900/5"
