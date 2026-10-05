@@ -1,15 +1,109 @@
 
+import { useLayoutEffect, useRef } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 const TeamContribution = () => {
+  const sectionRef = useRef(null);
+  const chatCardRef = useRef(null);
+  const textColRef = useRef(null);
+  const listItemRefs = useRef([]);
+  const darkCardRef = useRef(null);
+  const statRefs = useRef([]);
+  const featureCardRefs = useRef([]);
+  const textBlockRef = useRef(null);
+
+  useLayoutEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const ctx = gsap.context(() => {
+      // Top section: card and copy slide in from opposite sides
+      gsap.from(chatCardRef.current, {
+        x: -40,
+        opacity: 0,
+        duration: 0.8,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: chatCardRef.current, start: 'top 82%' },
+      });
+      gsap.from(textColRef.current, {
+        x: 40,
+        opacity: 0,
+        duration: 0.8,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: chatCardRef.current, start: 'top 82%' },
+      });
+
+      // Feature list items stagger up
+      gsap.from(listItemRefs.current.filter(Boolean), {
+        y: 24,
+        opacity: 0,
+        duration: 0.6,
+        stagger: 0.12,
+        ease: 'power2.out',
+        scrollTrigger: { trigger: textColRef.current, start: 'top 78%' },
+      });
+
+      // Dark section scales in
+      gsap.from(darkCardRef.current, {
+        y: 40,
+        opacity: 0,
+        scale: 0.97,
+        duration: 0.8,
+        ease: 'power3.out',
+        scrollTrigger: { trigger: darkCardRef.current, start: 'top 85%' },
+      });
+      gsap.from(textBlockRef.current, {
+        y: 20,
+        opacity: 0,
+        duration: 0.7,
+        ease: 'power2.out',
+        scrollTrigger: { trigger: darkCardRef.current, start: 'top 78%' },
+      });
+
+      // Stats pop in
+      gsap.from(statRefs.current.filter(Boolean), {
+        y: 20,
+        opacity: 0,
+        duration: 0.6,
+        stagger: 0.15,
+        ease: 'back.out(1.6)',
+        scrollTrigger: { trigger: darkCardRef.current, start: 'top 70%' },
+      });
+
+      // Feature cards grid stagger
+      gsap.from(featureCardRefs.current.filter(Boolean), {
+        y: 28,
+        opacity: 0,
+        duration: 0.55,
+        stagger: 0.1,
+        ease: 'power2.out',
+        scrollTrigger: { trigger: darkCardRef.current, start: 'top 75%' },
+      });
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  const setListItemRef = (el, i) => {
+    if (el) listItemRefs.current[i] = el;
+  };
+  const setStatRef = (el, i) => {
+    if (el) statRefs.current[i] = el;
+  };
+  const setFeatureCardRef = (el, i) => {
+    if (el) featureCardRefs.current[i] = el;
+  };
+
   return (
-    <div className="min-h-screen bg-[#F8F9FA] p-8 md:p-12 font-sans text-slate-800 flex items-center justify-center">
+    <div ref={sectionRef} className="min-h-screen bg-[#F8F9FA] p-8 md:p-12 font-sans text-slate-800 flex items-center justify-center">
       <div className="max-w-1100px w-full flex flex-col gap-12">
         
         {/* ================= TOP SECTION (LIGHT) ================= */}
         <div className="flex flex-col md:flex-row gap-10 md:gap-16">
           
           {/* --- Left Column: Chat/Task Card --- */}
-          <div className="w-full md:w-1/2 bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 p-6 flex flex-col">
+          <div ref={chatCardRef} className="w-full md:w-1/2 bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 p-6 flex flex-col">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2 font-semibold text-slate-800">
@@ -88,7 +182,7 @@ const TeamContribution = () => {
           </div>
 
           {/* --- Right Column: Text Content --- */}
-          <div className="w-full md:w-1/2 flex flex-col justify-center">
+          <div ref={textColRef} className="w-full md:w-1/2 flex flex-col justify-center">
             <div className="text-xs font-bold text-emerald-600 tracking-wider mb-3 uppercase">
               Unbroken Focus
             </div>
@@ -100,7 +194,7 @@ const TeamContribution = () => {
             </p>
 
             <ul className="flex flex-col gap-6">
-              <li className="flex gap-3">
+              <li ref={(el) => setListItemRef(el, 0)} className="flex gap-3">
                 <svg className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                 </svg>
@@ -109,7 +203,7 @@ const TeamContribution = () => {
                   <p className="text-xs text-slate-500 leading-relaxed">Hover over any teammate message and instantly convert it to a scheduled task with assignee and milestone tags.</p>
                 </div>
               </li>
-              <li className="flex gap-3">
+              <li ref={(el) => setListItemRef(el, 1)} className="flex gap-3">
                 <svg className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                 </svg>
@@ -118,7 +212,7 @@ const TeamContribution = () => {
                   <p className="text-xs text-slate-500 leading-relaxed">Block out 90-minute deep work sessions where non-urgent direct messages wait until your sprint is finished.</p>
                 </div>
               </li>
-              <li className="flex gap-3">
+              <li ref={(el) => setListItemRef(el, 2)} className="flex gap-3">
                 <svg className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                 </svg>
@@ -132,11 +226,11 @@ const TeamContribution = () => {
         </div>
 
         {/* ================= BOTTOM SECTION (DARK GREEN) ================= */}
-        <div className="w-full bg-[#113C30] rounded-3xl p-8 md:p-10 flex flex-col md:flex-row gap-10 md:gap-16">
+        <div ref={darkCardRef} className="w-full bg-[#113C30] rounded-3xl p-8 md:p-10 flex flex-col md:flex-row gap-10 md:gap-16">
           
           {/* --- Left Column: Text & Stats --- */}
           <div className="w-full md:w-1/2 flex flex-col justify-between">
-            <div>
+            <div ref={textBlockRef}>
               <div className="text-[10px] font-bold text-emerald-400 tracking-wider mb-3 uppercase">
                 Habit Architecture
               </div>
@@ -149,12 +243,12 @@ const TeamContribution = () => {
             </div>
             
             <div className="flex items-center gap-8 mt-4">
-              <div className="flex flex-col">
+              <div ref={(el) => setStatRef(el, 0)} className="flex flex-col">
                 <span className="text-4xl font-bold text-white mb-1">94.8%</span>
                 <span className="text-xs text-emerald-200/80">Weekly task completion rate</span>
               </div>
               <div className="w-px h-12 bg-emerald-700/50"></div>
-              <div className="flex flex-col">
+              <div ref={(el) => setStatRef(el, 1)} className="flex flex-col">
                 <span className="text-4xl font-bold text-white mb-1">3.2x</span>
                 <span className="text-xs text-emerald-200/80">Faster sprint resolution</span>
               </div>
@@ -165,7 +259,7 @@ const TeamContribution = () => {
           <div className="w-full md:w-1/2 grid grid-cols-1 sm:grid-cols-2 gap-4">
             
             {/* Card 1 */}
-            <div className="bg-[#1A4A3C] p-5 rounded-xl border border-emerald-800/30">
+            <div ref={(el) => setFeatureCardRef(el, 0)} className="bg-[#1A4A3C] p-5 rounded-xl border border-emerald-800/30">
               <div className="flex items-center gap-2 mb-2">
                 <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -176,7 +270,7 @@ const TeamContribution = () => {
             </div>
 
             {/* Card 2 */}
-            <div className="bg-[#1A4A3C] p-5 rounded-xl border border-emerald-800/30">
+            <div ref={(el) => setFeatureCardRef(el, 1)} className="bg-[#1A4A3C] p-5 rounded-xl border border-emerald-800/30">
               <div className="flex items-center gap-2 mb-2">
                 <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -187,7 +281,7 @@ const TeamContribution = () => {
             </div>
 
             {/* Card 3 */}
-            <div className="bg-[#1A4A3C] p-5 rounded-xl border border-emerald-800/30">
+            <div ref={(el) => setFeatureCardRef(el, 2)} className="bg-[#1A4A3C] p-5 rounded-xl border border-emerald-800/30">
               <div className="flex items-center gap-2 mb-2">
                 <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -198,7 +292,7 @@ const TeamContribution = () => {
             </div>
 
             {/* Card 4 */}
-            <div className="bg-[#1A4A3C] p-5 rounded-xl border border-emerald-800/30">
+            <div ref={(el) => setFeatureCardRef(el, 3)} className="bg-[#1A4A3C] p-5 rounded-xl border border-emerald-800/30">
               <div className="flex items-center gap-2 mb-2">
                 <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />

@@ -8,6 +8,7 @@ export default function DashboardShowcase() {
 
   useEffect(() => {
     let observer;
+    let timeline;
     const ctx = gsap.context(() => {
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         gsap.set(progressRef.current, { width: "100%" });
@@ -18,7 +19,7 @@ export default function DashboardShowcase() {
         ([entry]) => {
           if (!entry.isIntersecting) return;
 
-          gsap
+          timeline = gsap
             .timeline()
             .fromTo(
               cardsRef.current.filter(Boolean),
@@ -46,6 +47,7 @@ export default function DashboardShowcase() {
 
     return () => {
       observer?.disconnect();
+      timeline?.kill();
       ctx.revert();
     };
   }, []);
@@ -271,7 +273,7 @@ export default function DashboardShowcase() {
                 <div
                   ref={progressRef}
                   className="h-full bg-white rounded-full"
-                  style={{ width: "0%" }}
+                  style={{ width: "100%" }}
                 />
               </div>
               <p className="text-sm opacity-90 leading-snug">

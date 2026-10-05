@@ -1,10 +1,41 @@
+import { useLayoutEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { gsap } from 'gsap';
 import DashboardShowcase from './dashboardshowcase.jsx';
 import DesignedForFlow from './DesignedforFlow.jsx';
 import TeamContribution from './TeamContribution.jsx';
 import TestimonialCard from './testimonials.jsx';
+import Footer from './Footer.jsx';
 
 export default function Homepage() {
+  const navRef = useRef(null);
+  const heroRef = useRef(null);
+  const pillRef = useRef(null);
+  const headlineRef = useRef(null);
+  const subRef = useRef(null);
+  const ctaRef = useRef(null);
+  const proofRef = useRef(null);
+  const logosRef = useRef(null);
+
+  useLayoutEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const ctx = gsap.context(() => {
+      const timeline = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+      timeline
+        .from(navRef.current, { y: -24, opacity: 0, duration: 0.5 })
+        .from(pillRef.current, { y: 16, opacity: 0, duration: 0.5 }, '-=0.15')
+        .from(headlineRef.current, { y: 24, opacity: 0, duration: 0.7 }, '-=0.25')
+        .from(subRef.current, { y: 20, opacity: 0, duration: 0.6 }, '-=0.45')
+        .from(ctaRef.current, { y: 20, opacity: 0, duration: 0.6 }, '-=0.4')
+        .from(proofRef.current, { y: 16, opacity: 0, duration: 0.5 }, '-=0.35')
+        .from(logosRef.current, { y: 16, opacity: 0, duration: 0.5 }, '-=0.3');
+    }, heroRef);
+
+    return () => ctx.revert();
+  }, []);
+
   const navLinks = ["Features", "Workspaces", "Team Chat", "Solutions", "Pricing"];
 
   const logos = [
@@ -39,7 +70,7 @@ export default function Homepage() {
     <div className="min-h-screen bg-white font-sans text-slate-900 antialiased [font-family:Inter,system-ui,sans-serif]">
       {/* ---------- Navbar ---------- */}
       <header className="border-b border-slate-100">
-        <nav className="mx-auto flex h-16 max-w-7xl items-center gap-8 px-6">
+        <nav ref={navRef} className="mx-auto flex h-16 max-w-7xl items-center gap-8 px-6">
           {/* Logo */}
           <Link to="/" className="flex shrink-0 items-center gap-2">
             <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600">
@@ -78,7 +109,7 @@ export default function Homepage() {
       </header>
 
       {/* ---------- Hero ---------- */}
-      <section className="relative overflow-hidden">
+      <section ref={heroRef} className="relative overflow-hidden">
         {/* soft green glow */}
         <div
           aria-hidden
@@ -88,6 +119,7 @@ export default function Homepage() {
         <div className="relative mx-auto max-w-4xl px-6 pt-14 pb-20 text-center">
           {/* Announcement pill */}
           <a
+            ref={pillRef}
             href="#"
             className="group inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white/80 py-1.5 pl-2 pr-2.5 text-[13px] font-semibold tracking-wide shadow-sm backdrop-blur transition hover:border-slate-300"
           >
@@ -104,7 +136,7 @@ export default function Homepage() {
           </a>
 
           {/* Headline */}
-          <h1 className="mt-7 text-balance text-[42px] font-bold leading-[1.08] tracking-tight text-slate-900 sm:text-[56px]">
+          <h1 ref={headlineRef} className="mt-7 text-balance text-[42px] font-bold leading-[1.08] tracking-tight text-slate-900 sm:text-[56px]">
             Where focused teams{" "}
             <span className="underline decoration-emerald-400 decoration-[6px] underline-offset-[10px]">
               stride forward
@@ -113,13 +145,13 @@ export default function Homepage() {
           </h1>
 
           {/* Subheadline */}
-          <p className="mx-auto mt-6 max-w-2xl text-pretty text-[17px] leading-relaxed text-slate-500 sm:text-lg">
+          <p ref={subRef} className="mx-auto mt-6 max-w-2xl text-pretty text-[17px] leading-relaxed text-slate-500 sm:text-lg">
             Join shared workspaces, organize daily tasks with habit-forming momentum, and chat
             with your team in real time — all inside one serene, distraction-free environment.
           </p>
 
           {/* CTAs */}
-          <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <div ref={ctaRef} className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link to="/register" className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl bg-emerald-700 px-6 py-3.5 text-[15px] font-semibold text-white shadow-lg shadow-emerald-700/20 transition hover:bg-emerald-800 sm:w-auto">
               <span className="text-base">🚀</span>
               Start for free — No card needed
@@ -134,7 +166,7 @@ export default function Homepage() {
           </div>
 
           {/* Social proof */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+          <div ref={proofRef} className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <div className="flex -space-x-2.5">
               {avatars.map((a) => (
                 <span
@@ -151,7 +183,7 @@ export default function Homepage() {
           </div>
 
           {/* Trusted by */}
-          <div className="mt-16">
+          <div ref={logosRef} className="mt-16">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
               Trusted by forward-moving teams at
             </p>
@@ -174,6 +206,7 @@ export default function Homepage() {
       <DesignedForFlow />
       <TeamContribution />
       <TestimonialCard />
+      <Footer />
 
     </div>
   );
