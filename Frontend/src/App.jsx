@@ -8,6 +8,7 @@ import Homepage from "./sections/homepage.jsx";
 // and dashboard screens (plus their stylesheets) are only downloaded when you
 // actually navigate to them, which keeps the first load on phones smaller.
 const Login = lazy(() => import("./pages/Login"));
+const SignUp = lazy(() => import("./pages/SignUp"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 
 function App() {
@@ -17,7 +18,7 @@ function App() {
                 <Routes>
                     <Route path="/" element={<Homepage />} />
                     <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Login />} />
+                    <Route path="/register" element={<SignUp />} />
                     <Route
                         path="/dashboard"
                         element={
