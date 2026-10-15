@@ -1,6 +1,7 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { isLiteMotion } from '../lib/motion';
 
 // Simple inline SVG icons so you don't need any icon libs
 const BuildingIcon = (props) => (
@@ -44,6 +45,8 @@ export default function DesignedForFlow() {
   };
 
   useLayoutEffect(() => {
+    if (isLiteMotion()) return;
+
     gsap.registerPlugin(ScrollTrigger);
 
     const ctx = gsap.context(() => {
@@ -108,7 +111,7 @@ export default function DesignedForFlow() {
     <section
       ref={sectionRef}
       id="features"
-      className="relative w-full bg-gradient-to-b from-slate-50/70 to-white py-16 sm:py-20"
+      className="defer-render relative w-full bg-gradient-to-b from-slate-50/70 to-white py-16 sm:py-20"
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Heading */}

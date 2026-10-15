@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
+import { isLiteMotion } from "../lib/motion";
 
 export default function DashboardShowcase() {
   const containerRef = useRef(null);
@@ -10,7 +11,7 @@ export default function DashboardShowcase() {
     let observer;
     let timeline;
     const ctx = gsap.context(() => {
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      if (isLiteMotion()) {
         gsap.set(progressRef.current, { width: "100%" });
         return;
       }
@@ -57,10 +58,10 @@ export default function DashboardShowcase() {
   };
 
   return (
-    <section id="overview" className="mx-auto my-12 w-full max-w-5xl px-4 sm:my-16 sm:px-6">
+    <section id="overview" className="defer-render mx-auto my-12 w-full max-w-5xl px-4 sm:my-16 sm:px-6">
       <div
         ref={containerRef}
-        className="mx-auto max-h-[680px] w-full overflow-hidden rounded-2xl border border-slate-200/70 bg-[#F8F7FC] font-sans text-slate-800 shadow-[0_35px_80px_-25px_rgba(15,23,42,0.32),0_12px_30px_-12px_rgba(15,23,42,0.16)] ring-1 ring-slate-900/5"
+        className="mx-auto max-h-680px w-full overflow-hidden rounded-2xl border border-slate-200/70 bg-[#F8F7FC] font-sans text-slate-800 shadow-xl ring-1 ring-slate-900/5"
       >
       {/* Browser-style window chrome (screenshot frame) */}
       <div className="flex items-center gap-1.5 px-4 py-2 bg-white/60 border-b border-slate-200/60">
@@ -77,7 +78,7 @@ export default function DashboardShowcase() {
       </div>
 
       {/* Top navigation bar (simplified) */}
-      <header className="flex items-center justify-between px-6 py-3 border-b border-slate-200/60 bg-white/70 backdrop-blur-sm">
+      <header className="flex items-center justify-between px-6 py-3 border-b border-slate-200/60 bg-white/70">
         <div className="flex items-center gap-2 text-sm text-slate-500">
           <span className="font-medium text-slate-700">Personal</span>
           <span>/</span>
@@ -101,7 +102,7 @@ export default function DashboardShowcase() {
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className="hidden lg:flex w-64 min-h-760px shrink-0 bg-white border-r border-slate-200/70 p-4 flex-col">
+        <aside className="hidden lg:flex w-64 shrink-0 bg-white border-r border-slate-200/70 p-4 flex-col">
           <div className="flex items-center gap-3 mb-6 px-2 py-2 rounded-xl bg-slate-50">
             <div className="w-9 h-9 rounded-lg bg-violet-500 flex items-center justify-center text-white font-semibold">
               P

@@ -2,6 +2,7 @@
 import { useLayoutEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { isLiteMotion } from '../lib/motion';
 
 const TeamContribution = () => {
   const sectionRef = useRef(null);
@@ -14,8 +15,9 @@ const TeamContribution = () => {
   const textBlockRef = useRef(null);
 
   useLayoutEffect(() => {
+    if (isLiteMotion()) return;
+
     gsap.registerPlugin(ScrollTrigger);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const ctx = gsap.context(() => {
       // Top section: card and copy slide in from opposite sides
@@ -96,8 +98,8 @@ const TeamContribution = () => {
   };
 
   return (
-    <div id="team-chat" ref={sectionRef} className="min-h-screen bg-[#F8F9FA] p-8 md:p-12 font-sans text-slate-800 flex items-center justify-center">
-      <div className="max-w-1100px w-full flex flex-col gap-12">
+    <div id="team-chat" ref={sectionRef} className="defer-render min-h-screen bg-[#F8F9FA] p-8 md:p-12 font-sans text-slate-800 flex items-center justify-center">
+      <div className="w-full flex flex-col gap-12">
         
         {/* ================= TOP SECTION (LIGHT) ================= */}
         <div className="flex flex-col md:flex-row gap-10 md:gap-16">

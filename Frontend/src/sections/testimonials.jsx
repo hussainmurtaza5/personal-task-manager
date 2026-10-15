@@ -2,6 +2,7 @@
 import { useLayoutEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { isLiteMotion } from '../lib/motion';
 
 const TestimonialCard = ({ initials, name, role, quote, avatarBg }) => (
   <div className="testimonial-card bg-white rounded-2xl p-6 shadow-[0_2px_15px_rgb(0,0,0,0.03)] border border-slate-100 flex flex-col h-full">
@@ -37,7 +38,7 @@ const TestimonialSection = () => {
 
   useLayoutEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (isLiteMotion()) return;
 
     const ctx = gsap.context(() => {
       // Testimonials heading + cards
@@ -106,8 +107,8 @@ const TestimonialSection = () => {
   ];
 
   return (
-    <div id="testimonials" ref={sectionRef} className="min-h-screen bg-[#F8F9FA] py-16 px-6 md:px-12 font-sans flex flex-col items-center">
-      <div className="max-w-[1100px] w-full flex flex-col gap-16">
+    <div id="testimonials" ref={sectionRef} className="defer-render min-h-screen bg-[#F8F9FA] py-16 px-6 md:px-12 font-sans flex flex-col items-center">
+      <div className="max-w-1100px w-full flex flex-col gap-16">
 
         {/* ================= SECTION 1: TESTIMONIALS ================= */}
         <div className="flex flex-col items-center">

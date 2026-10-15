@@ -56,6 +56,10 @@
 }
 
 .submit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     width: 100%;
     padding: 12px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -106,6 +110,18 @@
     font-size: 14px;
 }
 
-.toggle-btn:hover {
-    text-decoration: underline;
+.toggle-btn:disabled {
+    color: #9aa0a6;
+    cursor: not-allowed;
+    text-decoration: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .submit-btn {
+        transition: none;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+        transform: none;
+    }
 }

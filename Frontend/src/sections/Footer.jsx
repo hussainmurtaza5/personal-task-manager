@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { isLiteMotion } from '../lib/motion';
 
 const footerColumns = [
   {
@@ -65,7 +66,7 @@ export default function Footer() {
 
   useLayoutEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReduced = isLiteMotion();
 
     const ctx = gsap.context(() => {
       if (prefersReduced) return;
@@ -106,11 +107,11 @@ export default function Footer() {
   return (
     <footer
       ref={footerRef}
-      className="relative w-full overflow-hidden bg-[#0B4534] font-sans text-emerald-50"
+      className="defer-render relative w-full overflow-hidden bg-[#0B4534] font-sans text-emerald-50"
     >
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-24 left-1/2 h-72 w-[720px] -translate-x-1/2 rounded-full bg-emerald-400/10 blur-[120px]"
+        className="pointer-events-none absolute -top-24 left-1/2 h-72 w-[720px] -translate-x-1/2 bg-[radial-gradient(50%_50%_at_50%_50%,rgba(52,211,153,0.16),transparent_70%)]"
       />
 
       <div className="relative mx-auto max-w-6xl px-6 pt-16 pb-10 sm:px-8">

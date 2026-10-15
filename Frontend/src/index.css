@@ -74,7 +74,7 @@
   --color-error: #ba1a1a;
 }
 
-:root { font-family: 'Trebuchet MS', 'Segoe UI', sans-serif; color: #25302f; background: #f5f7f4; font-synthesis: none; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
+:root { font-family: 'Trebuchet MS', 'Segoe UI', sans-serif; color: #25302f; background: #f5f7f4; font-synthesis: none; -webkit-font-smoothing: antialiased; }
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; }
 button, input { font: inherit; }
@@ -109,4 +109,59 @@ html {
 /* Optional: tweak icon rendering */
 .material-symbols-outlined {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ---------------------------------------------------------------------------
+   Loading spinners (shared by the route fallback and the auth buttons)
+   --------------------------------------------------------------------------- */
+.spinner {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(16, 102, 71, 0.25);
+  border-top-color: #106647;
+  border-radius: 50%;
+  animation: spinner-rotate 0.7s linear infinite;
+}
+
+.spinner-inverse {
+  border-color: rgba(255, 255, 255, 0.4);
+  border-top-color: #ffffff;
+}
+
+@keyframes spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 1.8s;
+  }
+}
+
+.route-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 100vh;
+  color: #4d6357;
+  font-size: 0.875rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Heavy below-the-fold sections. On phones (and for reduced motion) the browser
+   is allowed to skip their layout/paint work until they scroll into view, which
+   removes a lot of the first-paint cost. Desktop keeps them rendered eagerly so
+   the GSAP scroll triggers keep measuring accurate positions.
+   --------------------------------------------------------------------------- */
+@media (max-width: 900px), (prefers-reduced-motion: reduce) {
+  .defer-render {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 720px;
+  }
 }

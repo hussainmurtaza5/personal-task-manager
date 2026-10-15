@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-// import authService, { loginUser } from '../services/authService';
 import * as authService from '../services/authService';
 import '../styles/Login.css';
 
@@ -22,14 +21,11 @@ function Login() {
         setLoading(true);
 
         try {
-            const response = await authService.login(usernameOrEmail, password);
-            console.log('Login successful:', response);
-            // Redirect to dashboard or home page
+            await authService.login(usernameOrEmail, password);
+            // Keep the spinner visible until the browser navigates away.
             window.location.href = '/dashboard';
         } catch (err) {
             setError(err.message);
-            console.error('Login error:', err);
-        } finally {
             setLoading(false);
         }
     };
@@ -47,13 +43,11 @@ function Login() {
 
         try {
             await authService.register(username, email, registerPassword);
-            const response = await authService.login(username, registerPassword);
-            console.log('Registration successful:', response);
+            await authService.login(username, registerPassword);
+            // Keep the spinner visible until the browser navigates away.
             window.location.href = '/dashboard';
         } catch (err) {
             setError(err.message);
-            console.error('Registration error:', err);
-        } finally {
             setLoading(false);
         }
     };
@@ -106,7 +100,14 @@ function Login() {
                         </div>
 
                         <button type="submit" className="submit-btn" disabled={loading}>
-                            {loading ? 'Logging in...' : 'Login'}
+                            {loading ? (
+                                <>
+                                    <span className="spinner spinner-inverse" aria-hidden="true" />
+                                    Logging in…
+                                </>
+                            ) : (
+                                'Login'
+                            )}
                         </button>
                     </form>
                 ) : (
@@ -120,6 +121,7 @@ function Login() {
                                 onChange={(e) => setUsername(e.target.value)}
                                 placeholder="Choose a username"
                                 required
+                                disabled={loading}
                             />
                         </div>
 
@@ -132,6 +134,7 @@ function Login() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="Enter your email"
                                 required
+                                disabled={loading}
                             />
                         </div>
 
@@ -144,6 +147,7 @@ function Login() {
                                 onChange={(e) => setRegisterPassword(e.target.value)}
                                 placeholder="Create a password"
                                 required
+                                disabled={loading}
                             />
                         </div>
 
@@ -156,11 +160,19 @@ function Login() {
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 placeholder="Confirm your password"
                                 required
+                                disabled={loading}
                             />
                         </div>
 
-                        <button type="submit" className="submit-btn">
-                            Sign Up
+                        <button type="submit" className="submit-btn" disabled={loading}>
+                            {loading ? (
+                                <>
+                                    <span className="spinner spinner-inverse" aria-hidden="true" />
+                                    Signing up…
+                                </>
+                            ) : (
+                                'Sign Up'
+                            )}
                         </button>
                     </form>
                 )}
@@ -168,7 +180,7 @@ function Login() {
 
                 <p className="toggle-mode">
                     {isLogin ? "Don't have an account? " : 'Already have an account? '}
-                    <button type="button" onClick={toggleMode} className="toggle-btn">
+                    <button type="button" onClick={toggleMode} className="toggle-btn" disabled={loading}>
                         {isLogin ? 'Sign Up' : 'Login'}
                     </button>
                 </p>

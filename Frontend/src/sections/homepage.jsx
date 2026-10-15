@@ -6,6 +6,7 @@ import DesignedForFlow from './DesignedforFlow.jsx';
 import TeamContribution from './TeamContribution.jsx';
 import TestimonialCard from './testimonials.jsx';
 import Footer from './Footer.jsx';
+import { isLiteMotion } from '../lib/motion';
 
 export default function Homepage() {
   const navRef = useRef(null);
@@ -18,7 +19,7 @@ export default function Homepage() {
   const logosRef = useRef(null);
 
   useLayoutEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (isLiteMotion()) return;
 
     const ctx = gsap.context(() => {
       const timeline = gsap.timeline({ defaults: { ease: 'power3.out' } });
@@ -120,7 +121,7 @@ export default function Homepage() {
         {/* soft green glow */}
         <div
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-0 h-[560px] w-[880px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-emerald-100/70 blur-[120px]"
+          className="pointer-events-none absolute inset-x-0 top-0 h-[560px] bg-[radial-gradient(50%_50%_at_50%_0%,rgba(167,243,208,0.55),transparent_70%)]"
         />
 
         <div className="relative mx-auto max-w-4xl px-6 pt-14 pb-20 text-center">
@@ -128,7 +129,7 @@ export default function Homepage() {
           <a
             ref={pillRef}
             href="#"
-            className="group inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white/80 py-1.5 pl-2 pr-2.5 text-[13px] font-semibold tracking-wide shadow-sm backdrop-blur transition hover:border-slate-300"
+            className="group inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white py-1.5 pl-2 pr-2.5 text-[13px] font-semibold tracking-wide shadow-sm transition hover:border-slate-300"
           >
             <span className="flex items-center gap-1.5 rounded-full px-2 py-0.5 text-emerald-700">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />

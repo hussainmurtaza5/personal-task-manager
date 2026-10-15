@@ -1,25 +1,33 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Homepage from "./sections/homepage.jsx";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import { lazy, Suspense } from "react";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
+import RouteLoader from "./components/RouteLoader";
+import Homepage from "./sections/homepage.jsx";
+
+// The landing page is the entry point, so it stays in the main bundle. The auth
+// and dashboard screens (plus their stylesheets) are only downloaded when you
+// actually navigate to them, which keeps the first load on phones smaller.
+const Login = lazy(() => import("./pages/Login"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
 
 function App() {
     return (
         <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<Homepage />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Login />} />
-                <Route
-                    path="/dashboard"
-                    element={
-                        <ProtectedRoute>
-                            <Dashboard />
-                        </ProtectedRoute>
-                    }
-                />
-            </Routes>
+            <Suspense fallback={<RouteLoader />}>
+                <Routes>
+                    <Route path="/" element={<Homepage />} />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Login />} />
+                    <Route
+                        path="/dashboard"
+                        element={
+                            <ProtectedRoute>
+                                <Dashboard />
+                            </ProtectedRoute>
+                        }
+                    />
+                </Routes>
+            </Suspense>
         </BrowserRouter>
     );
 }
