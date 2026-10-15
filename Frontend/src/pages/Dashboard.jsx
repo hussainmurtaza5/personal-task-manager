@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getUsername } from '../services/authService';
+import { acceptNotification, declineNotification, getNotifications } from '../services/notificationService';
 import {
     createPersonalTask,
     getPersonalTasks,
@@ -46,7 +47,9 @@ function Dashboard() {
     const [workspaceDialog, setWorkspaceDialog] = useState(null);
     const [workspaceName, setWorkspaceName] = useState('');
     const [workspaceDescription, setWorkspaceDescription] = useState('');
-    const [memberUsernameOrEmail, setMemberUsernameOrEmail] = useState('');
+    const [memberUsername, setMemberUsername] = useState('');
+    const [notifications, setNotifications] = useState([]);
+    const [notificationsOpen, setNotificationsOpen] = useState(false);
     const [activeFilter, setActiveFilter] = useState('All tasks');
     const [search, setSearch] = useState('');
     const [newTask, setNewTask] = useState('');
@@ -78,6 +81,10 @@ function Dashboard() {
         return () => {
             isCurrent = false;
         };
+    }, []);
+
+    useEffect(() => {
+        getNotifications().then(setNotifications).catch(() => {});
     }, []);
 
     // Load workspace tasks whenever the selected workspace changes
@@ -206,7 +213,7 @@ function Dashboard() {
 
     const inviteMember = async (event) => {
         event.preventDefault();
-        if (!memberUsernameOrEmail.trim()) return;
+        if (!memberUsername.trim()) return;
         if (selectedWorkspace.id === null) {
             setInviteError('Please select a workspace before inviting members.');
             return;
@@ -216,14 +223,29 @@ function Dashboard() {
         setIsInviting(true);
         try {
             await addMember(selectedWorkspace.id, {
-                usernameOrEmail: memberUsernameOrEmail.trim(),
+                username: memberUsername.trim(),
             });
-            setMemberUsernameOrEmail('');
-            setInviteSuccess(`Invited ${memberUsernameOrEmail.trim()} to ${selectedWorkspace.name}`);
+            setMemberUsername('');
+            setInviteSuccess(`Invite sent to @${memberUsername.trim()}`);
         } catch (error) {
             setInviteError(error.message);
         } finally {
             setIsInviting(false);
+        }
+    };
+
+    const handleInvite = async (notification, action) => {
+        try {
+            const updated = action === 'accept'
+                ? await acceptNotification(notification.id)
+                : await declineNotification(notification.id);
+            setNotifications((current) => current.map((item) => item.id === updated.id ? updated : item));
+            if (action === 'accept') {
+                const savedWorkspaces = await getWorkspaces();
+                setWorkspaces([personalWorkspace, ...savedWorkspaces]);
+            }
+        } catch (error) {
+            setTaskError(error.message);
         }
     };
 
@@ -246,7 +268,7 @@ function Dashboard() {
             </aside>
 
             <main className="dashboard-main">
-                <header className="topbar"><div className="breadcrumbs">{selectedWorkspace.name} <span>/</span> Overview</div><div className="top-actions"><button className="icon-button" aria-label="Search">⌕</button><button className="icon-button" aria-label="Notifications">♢<em /></button><button className="create-button" onClick={() => document.querySelector('.quick-add input')?.focus()}><span>+</span> New task</button></div></header>
+                <header className="topbar"><div className="breadcrumbs">{selectedWorkspace.name} <span>/</span> Overview</div><div className="top-actions"><button className="icon-button" aria-label="Search">⌕</button><div className="notification-wrap"><button className="icon-button" aria-label="Notifications" onClick={() => setNotificationsOpen((open) => !open)}>♢{notifications.some((notification) => !notification.read && notification.status === 'pending') && <em />}</button>{notificationsOpen && <div className="notification-menu"><strong>Notifications</strong>{notifications.length === 0 && <p>No notifications yet.</p>}{notifications.map((notification) => <div className={`notification-item ${notification.read ? '' : 'unread'}`} key={notification.id}><p>{notification.message}</p>{notification.type === 'workspace_invite' && notification.status === 'pending' && <div><button onClick={() => handleInvite(notification, 'accept')}>Accept</button><button onClick={() => handleInvite(notification, 'decline')}>Decline</button></div>}</div>)}</div>}</div><button className="create-button" onClick={() => document.querySelector('.quick-add input')?.focus()}><span>+</span> New task</button></div></header>
                 <div className="content-wrap">
                     <section className="welcome-row"><div><p className="eyebrow">Wednesday, August 19, 2026</p><h1>Good morning, {username} <span>✦</span></h1><p className="subheading">Here's what's happening with your work today.</p></div><div className="focus-note"><span>◒</span><div><strong>Keep your momentum</strong><small>{completedCount} of {tasks.length} tasks complete</small></div></div></section>
 
@@ -266,7 +288,7 @@ function Dashboard() {
                     <div className="task-list">{visibleTasks.map((task) => <article className={`task-row ${task.done ? 'is-done' : ''}`} key={`${task.workspaceId ?? 'personal'}-${task.id}`}><button className="task-check" onClick={() => toggleTask(task)} aria-label={`Mark ${task.title} ${task.done ? 'incomplete' : 'complete'}`}>{task.done ? '✓' : ''}</button><div className="task-title"><strong>{task.title}</strong><small><i className={`dot ${task.project === 'Personal' ? 'green' : task.project === 'Freelance' ? 'blue' : 'coral'}`} />{task.project}</small></div><span className="task-due">{task.due}</span><span className={`priority ${task.priority.toLowerCase()}`}>{task.priority}</span><button className="row-more" aria-label={`More options for ${task.title}`}>•••</button></article>)}{visibleTasks.length === 0 && <div className="empty-state">No tasks match this view.</div>}</div></section>
                 </div>
             </main>
-            {workspaceDialog && <div className="dialog-backdrop" role="presentation" onMouseDown={() => setWorkspaceDialog(null)}><section className="workspace-dialog" role="dialog" aria-modal="true" aria-labelledby="workspace-dialog-title" onMouseDown={(event) => event.stopPropagation()}><button className="dialog-close" onClick={() => setWorkspaceDialog(null)} aria-label="Close">×</button>{workspaceDialog === 'create' ? <><p className="eyebrow">Workspace</p><h2 id="workspace-dialog-title">Create a workspace</h2><p className="dialog-copy">Create a shared space for tasks and members.</p><form onSubmit={createWorkspace}><label>Workspace name<input value={workspaceName} onChange={(event) => setWorkspaceName(event.target.value)} placeholder="e.g. Marketing team" required /></label><label>Description <span>(optional)</span><textarea value={workspaceDescription} onChange={(event) => setWorkspaceDescription(event.target.value)} placeholder="What is this workspace for?" rows="3" /></label>{workspaceError && <p className="task-error" role="alert">{workspaceError}</p>}<button className="dialog-submit" type="submit">Create workspace</button></form></> : <><p className="eyebrow">{selectedWorkspace.name}</p><h2 id="workspace-dialog-title">Invite a member</h2><p className="dialog-copy">Add a member by username or email. Only workspace owners can do this.</p><form onSubmit={inviteMember}><label>Username or email<input value={memberUsernameOrEmail} onChange={(event) => setMemberUsernameOrEmail(event.target.value)} placeholder="name@example.com" required disabled={isInviting} /></label>{inviteError && <p className="task-error" role="alert">{inviteError}</p>}{inviteSuccess && <p className="invite-success" role="status">{inviteSuccess}</p>}<button className="dialog-submit" type="submit" disabled={isInviting}>{isInviting ? 'Inviting...' : 'Invite member'}</button></form></>}</section></div>}
+            {workspaceDialog && <div className="dialog-backdrop" role="presentation" onMouseDown={() => setWorkspaceDialog(null)}><section className="workspace-dialog" role="dialog" aria-modal="true" aria-labelledby="workspace-dialog-title" onMouseDown={(event) => event.stopPropagation()}><button className="dialog-close" onClick={() => setWorkspaceDialog(null)} aria-label="Close">×</button>{workspaceDialog === 'create' ? <><p className="eyebrow">Workspace</p><h2 id="workspace-dialog-title">Create a workspace</h2><p className="dialog-copy">Create a shared space for tasks and members.</p><form onSubmit={createWorkspace}><label>Workspace name<input value={workspaceName} onChange={(event) => setWorkspaceName(event.target.value)} placeholder="e.g. Marketing team" required /></label><label>Description <span>(optional)</span><textarea value={workspaceDescription} onChange={(event) => setWorkspaceDescription(event.target.value)} placeholder="What is this workspace for?" rows="3" /></label>{workspaceError && <p className="task-error" role="alert">{workspaceError}</p>}<button className="dialog-submit" type="submit">Create workspace</button></form></> : <><p className="eyebrow">{selectedWorkspace.name}</p><h2 id="workspace-dialog-title">Invite a member</h2><p className="dialog-copy">Invite someone by their username. They will receive a notification to accept.</p><form onSubmit={inviteMember}><label>Username<input value={memberUsername} onChange={(event) => setMemberUsername(event.target.value)} placeholder="e.g. alex" required disabled={isInviting} /></label>{inviteError && <p className="task-error" role="alert">{inviteError}</p>}{inviteSuccess && <p className="invite-success" role="status">{inviteSuccess}</p>}<button className="dialog-submit" type="submit" disabled={isInviting}>{isInviting ? 'Sending...' : 'Send invite'}</button></form></>}</section></div>}
         </div>
     );
 }

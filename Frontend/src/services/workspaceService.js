@@ -38,9 +38,9 @@ export function createWorkspace({ name, description = null }) {
     });
 }
 
-export function addMember(workspaceId, { usernameOrEmail }) {
+export function addMember(workspaceId, { username }) {
     return request(`/workspaces/${workspaceId}/members`, {
         method: 'POST',
-        body: JSON.stringify({ username_or_email: usernameOrEmail }),
+        body: JSON.stringify({ username }),
     });
 }
