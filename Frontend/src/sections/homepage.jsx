@@ -1,12 +1,43 @@
-import { useLayoutEffect, useRef } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { gsap } from 'gsap';
-import DashboardShowcase from './dashboardshowcase.jsx';
-import DesignedForFlow from './DesignedforFlow.jsx';
-import TeamContribution from './TeamContribution.jsx';
-import TestimonialCard from './testimonials.jsx';
-import Footer from './Footer.jsx';
-import { isLiteMotion } from '../lib/motion';
+
+const DashboardShowcase = lazy(() => import('./dashboardshowcase.jsx'));
+const DesignedForFlow = lazy(() => import('./DesignedforFlow.jsx'));
+const TeamContribution = lazy(() => import('./TeamContribution.jsx'));
+const TestimonialCard = lazy(() => import('./testimonials.jsx'));
+const Footer = lazy(() => import('./Footer.jsx'));
+
+function DeferredSection({ children, minHeight }) {
+  const containerRef = useRef(null);
+  const [shouldRender, setShouldRender] = useState(false);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !('IntersectionObserver' in window)) {
+      setShouldRender(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShouldRender(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '600px 0px' },
+    );
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={containerRef} style={{ minHeight }}>
+      {shouldRender && <Suspense fallback={null}>{children}</Suspense>}
+    </div>
+  );
+}
 
 export default function Homepage() {
   const navRef = useRef(null);
@@ -17,25 +48,6 @@ export default function Homepage() {
   const ctaRef = useRef(null);
   const proofRef = useRef(null);
   const logosRef = useRef(null);
-
-  useLayoutEffect(() => {
-    if (isLiteMotion()) return;
-
-    const ctx = gsap.context(() => {
-      const timeline = gsap.timeline({ defaults: { ease: 'power3.out' } });
-
-      timeline
-        .from(navRef.current, { y: -24, opacity: 0, duration: 0.5 })
-        .from(pillRef.current, { y: 16, opacity: 0, duration: 0.5 }, '-=0.15')
-        .from(headlineRef.current, { y: 24, opacity: 0, duration: 0.7 }, '-=0.25')
-        .from(subRef.current, { y: 20, opacity: 0, duration: 0.6 }, '-=0.45')
-        .from(ctaRef.current, { y: 20, opacity: 0, duration: 0.6 }, '-=0.4')
-        .from(proofRef.current, { y: 16, opacity: 0, duration: 0.5 }, '-=0.35')
-        .from(logosRef.current, { y: 16, opacity: 0, duration: 0.5 }, '-=0.3');
-    }, heroRef);
-
-    return () => ctx.revert();
-  }, []);
 
   const navLinks = [
     { label: "Overview", href: "#overview" },
@@ -210,11 +222,11 @@ export default function Homepage() {
         </div>
       </section>
 
-      <DashboardShowcase />
-      <DesignedForFlow />
-      <TeamContribution />
-      <TestimonialCard />
-      <Footer />
+      <DeferredSection minHeight="620px"><DashboardShowcase /></DeferredSection>
+      <DeferredSection minHeight="760px"><DesignedForFlow /></DeferredSection>
+      <DeferredSection minHeight="820px"><TeamContribution /></DeferredSection>
+      <DeferredSection minHeight="720px"><TestimonialCard /></DeferredSection>
+      <DeferredSection minHeight="360px"><Footer /></DeferredSection>
 
     </div>
   );
