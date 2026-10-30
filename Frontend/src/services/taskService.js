@@ -38,7 +38,7 @@ export function updatePersonalTask(taskId, task) {
     });
 }
 
-export function createPersonalTask({ title, description = null, status = 'pending', priority = 0, dueDate = null }) {
+export function createPersonalTask({ title, description = null, status = 'pending', priority = 0, due_date = null }) {
     return request('/tasks/create', {
         method: 'POST',
         body: JSON.stringify({
@@ -46,7 +46,7 @@ export function createPersonalTask({ title, description = null, status = 'pendin
             description,
             status,
             priority: Number(priority),
-            due_date: dueDate,
+            due_date,
         }),
     });
 }
@@ -62,7 +62,7 @@ export function updateWorkspaceTask(workspaceId, taskId, task) {
     });
 }
 
-export function createWorkspaceTask(workspaceId, { title, description = null, status = 'pending', priority = 0, dueDate = null }) {
+export function createWorkspaceTask(workspaceId, { title, description = null, status = 'pending', priority = 0, due_date = null }) {
     return request(`/tasks/workspace/${workspaceId}/create`, {
         method: 'POST',
         body: JSON.stringify({
@@ -70,7 +70,7 @@ export function createWorkspaceTask(workspaceId, { title, description = null, st
             description,
             status,
             priority: Number(priority),
-            due_date: dueDate,
+            due_date,
         }),
     });
 }

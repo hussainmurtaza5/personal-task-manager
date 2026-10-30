@@ -56,6 +56,7 @@ function Dashboard() {
     const [newDescription, setNewDescription] = useState('');
     const [newStatus, setNewStatus] = useState('pending');
     const [newPriority, setNewPriority] = useState('0');
+    const [newDueDate, setNewDueDate] = useState('');
     const [taskError, setTaskError] = useState('');
     const [workspaceError, setWorkspaceError] = useState('');
     const [inviteError, setInviteError] = useState('');
@@ -63,16 +64,19 @@ function Dashboard() {
     const [isCreatingTask, setIsCreatingTask] = useState(false);
     const [isInviting, setIsInviting] = useState(false);
     const [loadedWorkspaceIds, setLoadedWorkspaceIds] = useState(new Set());
+    const [activeView, setActiveView] = useState('overview');
     const username = getUsername();
 
     useEffect(() => {
         let isCurrent = true;
 
         Promise.all([getPersonalTasks(), getWorkspaces()])
-            .then(([savedTasks, savedWorkspaces]) => {
+            .then(async ([savedTasks, savedWorkspaces]) => {
                 if (!isCurrent) return;
-                setTasks(savedTasks.map(toUiTask));
+                const groups = await Promise.all(savedWorkspaces.map((workspace) => getWorkspaceTasks(workspace.id)));
+                setTasks([...savedTasks, ...groups.flat()].map(toUiTask));
                 setWorkspaces([personalWorkspace, ...savedWorkspaces]);
+                setLoadedWorkspaceIds(new Set(savedWorkspaces.map((workspace) => workspace.id)));
             })
             .catch((error) => {
                 if (isCurrent) setTaskError(error.message);
@@ -174,6 +178,7 @@ function Dashboard() {
                 description: newDescription.trim() || null,
                 status: newStatus,
                 priority: Number(newPriority),
+                due_date: newDueDate || null,
             };
 
             const task = selectedWorkspace.id === null
@@ -185,6 +190,7 @@ function Dashboard() {
             setNewDescription('');
             setNewStatus('pending');
             setNewPriority('0');
+            setNewDueDate('');
         } catch (error) {
             setTaskError(error.message);
         } finally {
@@ -250,6 +256,16 @@ function Dashboard() {
     };
 
     const isPersonal = selectedWorkspace.id === null;
+    const viewTitle = activeView === 'overview' ? 'Overview' : activeView === 'tasks' ? 'My tasks' : activeView === 'projects' ? 'Projects' : 'Calendar';
+    const calendarGroups = useMemo(() => tasks.filter((task) => task.dueDate).reduce((groups, task) => {
+        const key = new Date(task.dueDate).toISOString().slice(0, 10);
+        groups[key] = [...(groups[key] || []), task];
+        return groups;
+    }, {}), [tasks]);
+    const selectView = (view) => {
+        setActiveView(view);
+        if (view === 'tasks') setSelectedWorkspace(personalWorkspace);
+    };
 
     return (
         <div className="dashboard-shell">
@@ -257,10 +273,10 @@ function Dashboard() {
                 <div className="brand"><span className="brand-mark">✓</span><span>stride</span></div>
                 <div className="workspace-picker"><button className="workspace-switcher" onClick={() => setWorkspaceMenuOpen((open) => !open)} aria-expanded={workspaceMenuOpen}><span className="workspace-avatar">{selectedWorkspace.name.charAt(0).toUpperCase()}</span><span><strong>{selectedWorkspace.name}</strong><small>{selectedWorkspace.description}</small></span><span className="chevron">⌄</span></button>{workspaceMenuOpen && <div className="workspace-menu"><p>Workspaces</p>{workspaces.map((workspace) => <button key={workspace.id ?? 'personal'} className={workspace.id === selectedWorkspace.id ? 'workspace-option selected' : 'workspace-option'} onClick={() => { setSelectedWorkspace(workspace); setWorkspaceMenuOpen(false); }}><span className="workspace-option-mark">{workspace.name.charAt(0).toUpperCase()}</span><span>{workspace.name}<small>{workspace.description}</small></span>{workspace.id === selectedWorkspace.id && <b>✓</b>}</button>)}<button className="workspace-action" onClick={() => { setWorkspaceDialog('create'); setWorkspaceMenuOpen(false); }}>＋ Create workspace</button><button className="workspace-action" onClick={() => { setWorkspaceDialog('invite'); setWorkspaceMenuOpen(false); }}>＋ Invite member</button></div>}</div>
                 <nav className="sidebar-nav" aria-label="Main navigation">
-                    <button className="nav-item active"><span>▦</span>Overview</button>
-                    <button className="nav-item"><span>✓</span>My tasks <b>{tasks.filter((task) => !task.done).length}</b></button>
-                    <button className="nav-item"><span>▤</span>Projects</button>
-                    <button className="nav-item"><span>◷</span>Calendar</button>
+                    <button className={`nav-item ${activeView === 'overview' ? 'active' : ''}`} onClick={() => selectView('overview')}><span>▦</span>Overview</button>
+                    <button className={`nav-item ${activeView === 'tasks' ? 'active' : ''}`} onClick={() => selectView('tasks')}><span>✓</span>My tasks <b>{tasks.filter((task) => !task.done).length}</b></button>
+                    <button className={`nav-item ${activeView === 'projects' ? 'active' : ''}`} onClick={() => selectView('projects')}><span>▤</span>Projects</button>
+                    <button className={`nav-item ${activeView === 'calendar' ? 'active' : ''}`} onClick={() => selectView('calendar')}><span>◷</span>Calendar</button>
                 </nav>
                 <div className="sidebar-section"><p>Projects <button className="small-action" aria-label="Add project">+</button></p><button className="project-link"><i className="dot coral" />Website redesign</button><button className="project-link"><i className="dot blue" />Freelance</button><button className="project-link"><i className="dot green" />Personal</button></div>
                 <div className="workspace-actions"><p>Workspace actions</p><button onClick={() => setWorkspaceDialog('create')}><span>＋</span>Create workspace</button><button onClick={() => setWorkspaceDialog('invite')}><span>＋</span>Invite member</button></div>
@@ -268,8 +284,11 @@ function Dashboard() {
             </aside>
 
             <main className="dashboard-main">
+                <span className="sr-only">{viewTitle}</span>
                 <header className="topbar"><div className="breadcrumbs">{selectedWorkspace.name} <span>/</span> Overview</div><div className="top-actions"><button className="icon-button" aria-label="Search">⌕</button><div className="notification-wrap"><button className="icon-button" aria-label="Notifications" onClick={() => setNotificationsOpen((open) => !open)}>♢{notifications.some((notification) => !notification.read && notification.status === 'pending') && <em />}</button>{notificationsOpen && <div className="notification-menu"><strong>Notifications</strong>{notifications.length === 0 && <p>No notifications yet.</p>}{notifications.map((notification) => <div className={`notification-item ${notification.read ? '' : 'unread'}`} key={notification.id}><p>{notification.message}</p>{notification.type === 'workspace_invite' && notification.status === 'pending' && <div><button onClick={() => handleInvite(notification, 'accept')}>Accept</button><button onClick={() => handleInvite(notification, 'decline')}>Decline</button></div>}</div>)}</div>}</div><button className="create-button" onClick={() => document.querySelector('.quick-add input')?.focus()}><span>+</span> New task</button></div></header>
-                <div className="content-wrap">
+                <div className={`content-wrap view-${activeView}`}>
+                    {activeView === 'projects' && <section className="feature-view"><div className="section-heading"><div><p className="eyebrow">Organize your work</p><h2>Projects</h2><p>Every workspace, with its latest progress.</p></div><button className="create-button" onClick={() => setWorkspaceDialog('create')}><span>+</span> New project</button></div><div className="project-grid">{workspaces.map((workspace) => { const projectTasks = tasks.filter((task) => task.workspaceId === workspace.id); const done = projectTasks.filter((task) => task.done).length; return <button className="project-card" key={workspace.id ?? 'personal'} onClick={() => { setSelectedWorkspace(workspace); selectView('overview'); }}><span className={`project-card-dot ${workspace.id ? 'blue' : 'green'}`} /><strong>{workspace.name}</strong><small>{workspace.description}</small><span>{done} of {projectTasks.length} tasks complete</span><i><b style={{ width: `${projectTasks.length ? (done / projectTasks.length) * 100 : 0}%` }} /></i></button>; })}</div></section>}
+                    {activeView === 'calendar' && <section className="feature-view"><div className="section-heading"><div><p className="eyebrow">Plan ahead</p><h2>Calendar</h2><p>Tasks grouped by their due date.</p></div></div><div className="calendar-list">{Object.keys(calendarGroups).sort().map((date) => <div className="calendar-day" key={date}><time>{new Date(`${date}T12:00:00`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</time><div>{calendarGroups[date].map((task) => <button className={`calendar-task ${task.done ? 'is-done' : ''}`} key={`${task.workspaceId ?? 'personal'}-${task.id}`} onClick={() => toggleTask(task)}><span className="task-check">{task.done ? '✓' : ''}</span><span><strong>{task.title}</strong><small>{task.project}</small></span><em>{task.priority}</em></button>)}</div></div>)}{Object.keys(calendarGroups).length === 0 && <div className="empty-state">No dated tasks yet. Add a due date to see your plan here.</div>}</div></section>}
                     <section className="welcome-row"><div><p className="eyebrow">Wednesday, August 19, 2026</p><h1>Good morning, {username} <span>✦</span></h1><p className="subheading">Here's what's happening with your work today.</p></div><div className="focus-note"><span>◒</span><div><strong>Keep your momentum</strong><small>{completedCount} of {tasks.length} tasks complete</small></div></div></section>
 
                     <section className="stats-grid" aria-label="Task summary"><div className="stat-card accent-card"><span className="stat-icon">◷</span><div><small>Due today</small><strong>{workspaceTasks.filter((task) => task.due === 'Today' && !task.done).length}</strong><p>Tasks to finish</p></div></div><div className="stat-card"><span className="stat-icon green-icon">✓</span><div><small>Completed</small><strong>{completedCount}</strong><p>Tasks this week</p></div></div><div className="stat-card"><span className="stat-icon blue-icon">▤</span><div><small>Active projects</small><strong>{workspaceTasks.length ? 1 : 0}</strong><p>Across your workspace</p></div></div><div className="progress-card"><div className="progress-heading"><div><small>Weekly progress</small><strong>{progress}%</strong></div><span>On track</span></div><div className="progress-track"><i style={{ width: `${progress}%` }} /></div><p>Great work. You're building a strong habit.</p></div></section>
@@ -280,7 +299,7 @@ function Dashboard() {
                         <textarea value={newDescription} onChange={(event) => setNewDescription(event.target.value)} placeholder="Description (optional)" disabled={isCreatingTask} rows="2" />
                         <div className="quick-add-controls">
                             <label>Status<select value={newStatus} onChange={(event) => setNewStatus(event.target.value)} disabled={isCreatingTask}><option value="pending">Pending</option><option value="in_progress">In progress</option><option value="completed">Completed</option></select></label>
-                            <label>Priority<select value={newPriority} onChange={(event) => setNewPriority(event.target.value)} disabled={isCreatingTask}><option value="0">Low</option><option value="1">Medium</option><option value="2">High</option></select></label>
+                            <label>Priority<select value={newPriority} onChange={(event) => setNewPriority(event.target.value)} disabled={isCreatingTask}><option value="0">Low</option><option value="1">Medium</option><option value="2">High</option></select></label><label>Due date<input type="date" value={newDueDate} onChange={(event) => setNewDueDate(event.target.value)} disabled={isCreatingTask} /></label>
                             <button type="submit" disabled={isCreatingTask}>{isCreatingTask ? 'Saving...' : isPersonal ? 'Add personal task' : `Add to ${selectedWorkspace.name}`}</button>
                         </div>
                     </form>

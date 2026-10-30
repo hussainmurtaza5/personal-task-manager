@@ -49,8 +49,8 @@ export async function login(usernameOrEmail, password) {
         }
     );
     if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || "Login failed");
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.detail || `Login failed (${response.status})`);
     }
 
     const data = await response.json();
